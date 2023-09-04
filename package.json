@@ -4,13 +4,13 @@
   "description": "",
   "main": "./lib/index.js",
   "scripts": {
-    "test": "tnpm run build && jest",
+    "test": "npm run build && jest",
     "lint": "npm run eslint && npm-ensure -t deps",
     "eslint": "eslint 'src/**/*.@(js|jsx)' --fix",
     "build": "tsc -p tsconfig.json",
     "precommit": "lint-staged",
     "watch": "tsc -p tsconfig.json -w",
-    "prepublish": "tnpm run build"
+    "prepublish": "npm run build"
   },
   "keywords": [],
   "author": "",
