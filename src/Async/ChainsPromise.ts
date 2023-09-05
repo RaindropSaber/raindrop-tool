@@ -11,38 +11,46 @@ const chainRun = (pFnArr: Function[] = [], index = 1) => {
 class ChainsPromise {
   status = "";
   queue: (<T>() => Promise<T>)[] = [];
-  chains = [Promise.resolve()];
-  end = () => {};
-  #createChain() {
-    let r;
-    const p = new Promise((resolve) => (r = resolve));
-    return [p, r];
+  runChains = 0;
+  freeChains = 1;
+
+  get chains() {
+    return this.runChains + this.freeChains;
   }
-  run() {
-    const next = (ci) => {
-      const fn = this.queue.shift();
-      if (fn) return (this.chains[ci] = fn().then(() => next(ci)));
-    };
-    this.chains.forEach((chain, ci) => chain.then(next(ci)));
-    Promise.all(this.chains).then(this.end);
-    return this;
+  #run() {
+    if (this.freeChains < 0) {
+      this.runChains--;
+      this.freeChains++;
+      return;
+    }
+    const fn = this.queue.shift();
+    if (fn) return fn().then(() => this.#run());
+    this.runChains--;
+    this.freeChains++;
   }
-  addPromise(fn: <T>() => Promise<T>) {
+  #trigger() {
+    while (this.freeChains > 0) {
+      this.#run();
+      this.runChains++;
+      this.freeChains--;
+    }
+  }
+  add(fn: <T>() => Promise<T>) {
     this.queue.push(fn);
+    this.#trigger();
     return this;
   }
-  addChain(n: number) {
+  addChains(n: number) {
+    this.freeChains = this.freeChains + n;
+    this.#trigger();
+    return this;
+  }
+  reduceChains(n: number) {
+    this.freeChains = this.freeChains - n;
     return this;
   }
   stop() {
-    return this;
-  }
-  onEnd(fn) {
-    this.end = fn;
-    return this;
-  }
-  onChange() {
-    return this;
+    return () => {};
   }
 }
 
@@ -61,16 +69,32 @@ const main = () => {
   };
   const testFn = log(() => sleep(1000));
   const chainsPromise = new ChainsPromise();
+  setTimeout(() => {
+    chainsPromise.reduceChains(1);
+    chainsPromise
+      .add(testFn)
+      .add(testFn)
+      .add(testFn)
+      .add(testFn)
+      .add(testFn)
+      .add(testFn)
+      .add(testFn);
+  }, 1000);
+
+  setTimeout(() => {
+    chainsPromise.addChains(1);
+    setTimeout(() => {
+      chainsPromise.addChains(1);
+    }, 3000);
+  }, 3000);
   chainsPromise
-    .addPromise(testFn)
-    .onEnd(() => {
-      console.log("the end");
-    })
-    .run()
-    .addPromise(testFn)
-    .addPromise(testFn)
-    .addPromise(testFn)
-    .addPromise(testFn);
+    .add(testFn)
+    .add(testFn)
+    .add(testFn)
+    .add(testFn)
+    .add(testFn)
+    .add(testFn)
+    .add(testFn);
   // const testFn = new Array(10).fill(log(() => sleep(1000)));
   // chainRun(testFn, 2).then(() => console.log("the end"));
 };
