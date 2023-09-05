@@ -25,12 +25,11 @@ const test = async () => {
 
   const log = (fn) => {
     let getIndex = 1;
-    return (...arg) => {
-      return fn(...arg).then((v) => {
+    return (...arg) =>
+      fn(...arg).then((v) => {
         console.log(`res${getIndex++}`, v);
         return v;
       });
-    };
   };
   const getData = log(lsfaPromise((t, res) => sleep(t).then((v) => res)));
   // 11
