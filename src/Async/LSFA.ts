@@ -11,7 +11,7 @@ export const lsfaPromiseSync = (pFn) => {
 };
 
 // 数组解决后发先至，按实际返回顺序返回，空间待优化
-export const lsfaPromise = (pFn) => {
+export const lsfaPromiseAsync = (pFn) => {
   const pA: any = [];
   let ri = 0;
   return (...arg) => {
@@ -20,30 +20,32 @@ export const lsfaPromise = (pFn) => {
   };
 };
 
-const test = async () => {
-  const sleep = (t) => new Promise((r) => setTimeout(r, t));
+export default { lsfaPromiseAsync, lsfaPromiseSync };
 
-  const log = (fn) => {
-    let getIndex = 1;
-    return (...arg) =>
-      fn(...arg).then((v) => {
-        console.log(`res${getIndex++}`, v);
-        return v;
-      });
-  };
-  const getData = log(lsfaPromise((t, res) => sleep(t).then((v) => res)));
-  // 11
-  // 33
-  // 23
-  // 44
-  // 66
-  // 56
-  getData(1000, 1);
-  getData(2000, 2);
-  await getData(1500, 3);
-  getData(1000, 4);
-  getData(2000, 5);
-  getData(1500, 6);
-};
+// const test = async () => {
+//   const sleep = (t) => new Promise((r) => setTimeout(r, t));
 
-test();
+//   const log = (fn) => {
+//     let getIndex = 1;
+//     return (...arg) =>
+//       fn(...arg).then((v) => {
+//         console.log(`res${getIndex++}`, v);
+//         return v;
+//       });
+//   };
+//   const getData = log(lsfaPromise((t, res) => sleep(t).then((v) => res)));
+//   // 11
+//   // 33
+//   // 23
+//   // 44
+//   // 66
+//   // 56
+//   getData(1000, 1);
+//   getData(2000, 2);
+//   await getData(1500, 3);
+//   getData(1000, 4);
+//   getData(2000, 5);
+//   getData(1500, 6);
+// };
+
+// test();
